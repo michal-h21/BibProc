@@ -1,14 +1,19 @@
 module BibProc where
+import qualified Data.Map as M
+
+data BibDatabase = BibDatabase (M.Map CiteKey BibRecord)
+
+
+class BibProc a where
+  bibImport :: a -> Int ->BibDatabase
+  bibExport :: BibDatabase -> a
+
 
 data BibRecord = BibRecord {
   citeKey   :: CiteKey, 
   bibTypes  :: [BibType], 
   bibFields :: [BibField]
 } deriving (Show, Eq,Read)
-
-class BibProc a where
-  bibImport :: a -> BibRecord
-  bibExport :: BibRecord -> a
 
 
 type CiteKey = String
@@ -30,7 +35,9 @@ data Personal = Person {
               | Institution String
                 deriving(Show,Eq,Read)
                 
-
+class BibConvert a where
+  toBibRecord   :: a -> BibRecord
+  fromBibRecord :: BibRecord -> a
 
 sample = BibRecord "kkkOi" [Article] [
   Title "Titulek" "Podtitulek", 
