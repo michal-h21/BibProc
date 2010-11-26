@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeSynonymInstances #-}
 module IsoReader where
 import BibProc
 import System.Environment (getArgs)
@@ -19,7 +20,19 @@ type IsoField = (L.Text,L.Text)
 
 
 instance BibProc IsoFile where
-         bibImport = processIsoFile 
+         bibImport   = processIsoFile 
+         bibExport x = IsoFile {fileName ="", contents = (L.pack "")}
+
+instance BibConvert IsoRecord where
+  fromBibRecord r = []
+  toBibRecord iso = BibRecord {
+    citeKey = ""
+    , bibTypes = [Article]
+    , bibFields = 
+      (map 
+       (\x -> isoToBibField (L.unpack (fst x)) (snd x)) 
+       iso)
+    } 
          
          
 loadIsoFile fileName = do
@@ -35,11 +48,21 @@ fileNames = do
               
 --printFiles :: -> [String] -> IO 
 
---ToDo!!!!!! Předělat
-              
+isoToBibField "100" x = BTitle  (L.pack "title") x             
+isoToBibField "010" x = BPersonal (L.pack "author") Person {
+    family = head au
+  , given  =  L.intercalate (L.pack ", ") $ tail au
+  }
+  where
+    au = L.split (L.pack ", ") x
+    
+isoToBibField t x = BField (L.pack t) x
+                    
+         
+
 processIsoFile :: IsoFile -> Int -> BibDatabase
-processIsoFile f i = BibDatabase M.empty
---processIsoFile f i = BibDatabase M.fromList zip [i..] $ parseISO f
+--processIsoFile f i = BibDatabase M.empty
+processIsoFile f i = BibDatabase $ M.fromList $ zip (map show [i..]) (map toBibRecord $ parseISO $ contents f)
 
 --ToDO: Parser
 parseISO :: L.Text -> [IsoRecord]
@@ -48,15 +71,18 @@ parseISO file = --[("OOO",BibRecord "ooo" [Article] [])]
   where
     spl = L.split $ splitString
     splitString = L.pack "##"
-    fieldSplit = L.pack "#"
-    isoFields s = 
+    
+isoFields :: L.Text -> IsoRecord
+isoFields s = 
       let 
         clean = L.replace (L.pack "\n") (L.pack "") s
         header:fields = L.split fieldSplit clean
         dir = L.chunksOf 12 $ snd (L.splitAt 25 header)
+        fieldSplit = L.pack "#"
       in
-      zipWith (\x y -> (x,y)) dir fields
+      zipWith (\x y -> ((L.take 3 x),y)) dir fields
       --(dir, fields) 
+
 
 main = do
   names <- fileNames 
