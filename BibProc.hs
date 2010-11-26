@@ -1,7 +1,7 @@
 module BibProc where
 import qualified Data.Map as M
 
-data BibDatabase = BibDatabase (M.Map CiteKey BibRecord)
+data BibDatabase = BibDatabase (M.Map CiteKey BibRecord) deriving (Show,Read)
 
 
 class BibProc a where
