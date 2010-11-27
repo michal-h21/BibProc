@@ -4,7 +4,7 @@ import BibProc
 import System.Environment (getArgs)
 import Control.Monad
 import Data.List (intercalate)
-import qualified Data.Map as M
+import qualified Data.IntMap as M
 import qualified Data.ByteString as Bs
 import qualified Data.ByteString.UTF8 as B
 import qualified Data.Text.Lazy as L
@@ -26,7 +26,7 @@ instance BibProc IsoFile where
 instance BibConvert IsoRecord where
   fromBibRecord r = []
   toBibRecord iso = BibRecord {
-    citeKey = ""
+    citeKey = L.pack ""
     , bibTypes = [Article]
     , bibFields = 
       (map 
@@ -62,7 +62,7 @@ isoToBibField t x = BField (L.pack t) x
 
 processIsoFile :: IsoFile -> Int -> BibDatabase
 --processIsoFile f i = BibDatabase M.empty
-processIsoFile f i = BibDatabase $ M.fromList $ zip (map show [i..]) (map toBibRecord $ parseISO $ contents f)
+processIsoFile f i = BibDatabase $ M.fromList $ zip [i..] (map toBibRecord $ parseISO $ contents f)
 
 --ToDO: Parser
 parseISO :: L.Text -> [IsoRecord]
