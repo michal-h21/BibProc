@@ -2,11 +2,13 @@
 module IsoReader where
 import BibProc
 import System.Environment (getArgs)
-import Control.Monad
+--import Control.Monad
 import Data.List (intercalate)
 import qualified Data.IntMap as M
-import qualified Data.ByteString as Bs
-import qualified Data.ByteString.UTF8 as B
+--import qualified Data.ByteString as Bs
+--import qualified Data.ByteString.UTF8 as B
+import qualified Data.Map as Map
+import qualified Data.IntSet as S
 import qualified Data.Text.Lazy as L
 import qualified Data.Text.Lazy.IO as LIO
 
@@ -34,7 +36,7 @@ instance BibConvert IsoRecord where
        iso)
     } 
          
-         
+loadIsoFile:: String -> IO IsoFile         
 loadIsoFile fileName = do
   cont <- LIO.readFile fileName
   return $ IsoFile fileName cont
@@ -47,7 +49,12 @@ fileNames = do
               
               
 --printFiles :: -> [String] -> IO 
-
+isoToBibField :: String -> L.Text -> BibField
+isoToBibField "100" x = createBibField "title" (BTitle (toField x) (toField ""))
+isoToBibField "010" x = createBibField "author" (BPersonal (toField $ head au) (toField $ L.intercalate (L.pack ", ") $ tail au )  where
+  au = L.split(L.pack ", ") x
+isoToBibField c x = createBibField c (BField x)
+{-
 isoToBibField "100" x = BTitle  (L.pack "title") x             
 isoToBibField "010" x = BPersonal (L.pack "author") Person {
     family = head au
@@ -57,7 +64,7 @@ isoToBibField "010" x = BPersonal (L.pack "author") Person {
     au = L.split (L.pack ", ") x
     
 isoToBibField t x = BField (L.pack t) x
-                    
+-}                    
          
 
 processIsoFile :: IsoFile -> Int -> BibDatabase
@@ -83,6 +90,8 @@ isoFields s =
       zipWith (\x y -> ((L.take 3 x),y)) dir fields
       --(dir, fields) 
 
+--buildIndex x d = M.foldWithKey indexBibRecord d x where
+--  indexBibRecord k v res = map     Map.insertWith S.union 
 
 main = do
   names <- fileNames 
